@@ -1,210 +1,180 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <map>
 #include <chrono>
-#include <conio.h>
 
 #include "BigNumber.hpp"
 
+using namespace std;
 
-std::string commandError, variableError[3];
-std::map<std::string, BigNumber> variableMap;
+void printVariable(string input);
+void displayTitle();
+void displayHelp();
+
+vector<string> splitInput(string input);
+bool isValidNumber(string num);
+bool isValidVariableName(string var);
+bool doesVariableExist(string var);
+bool calculate(string operation, string arg1, string arg2);
+
+struct Error {
+	static string Command, VariableName, VariableExist, VariableValue;
+};
+string Error::Command = "\n#### Enter a valid command. Type `help` for help. ####\n\n";
+string Error::VariableName = "#### Enter a valid variable name. ####\n";
+string Error::VariableExist = "#### Such a variable does not exist. ####\n";
+string Error::VariableValue = "#### Enter a valid value. ####\n";
+
+map<string, BigNumber> variableMap;
 bool timeDisplay = false;
-
-void printVariable(std::string input);
-void getVariableInput(std::string input);
-void calculate(std::string input, std::string operand);
 
 int main()
 {
-	std::cout << "##################  BigNumber Mathematics !  ##################\n";
-	std::cout << "#### Type .help for a list of useful commands. ####\n";
+	displayTitle();
 
-	std::string helpStr =
-		"#### Commands ####\n"
-		"#### .help - show a list of commands.\n"
-		"#### . [var] [number in string format] - declare a variable.\n"
-		"#### . [var] mem - declare a variable and copy its value from memory.\n"
-		"#### . [var] [another existing variable name] - declare a variable equal to another variable.\n"
-		"#### .mem displays the last calculated result.\n"
-		"#### .sum [var or num] [var or num] - add two variables/numbers.\n"
-		"#### .sub [var or num] [var or num] - subtract two variables/numbers.\n"
-		"#### .mul [var or num] [var or num] - multiply two variables/numbers.\n"
-		"#### .time - display time taken after each solve.\n"
-		"#### .clear - clear the memory.\n"
-		"#### .exit - exit the program.\n\n";
-
-	commandError = "\n#### Enter a valid command. Type `.help` for help. ####\n\n";
-	variableError[0] = "#### Enter a valid variable name. ####\n";
-	variableError[1] = "#### Such a variable does not exist. ####\n";
-	variableError[2] = "#### Enter a valid value. ####\n";
-
-	variableMap.insert(std::make_pair("mem", 0));
+	variableMap.insert(make_pair("mem", 0));
 
 	bool running = true;
 	while (running)
 	{
-		std::string input;
-		std::cout << "## ";
-		std::getline(std::cin, input);
-		if (input[0] == '.')
-		{
-			if (input == ".help")
-			{
-				std::cout << helpStr;
-			}
-			else if (input == ".exit")
-			{
-				running = false;
-			}
-			else if (input == ".time")
-			{
-				timeDisplay = !timeDisplay;
-			}
-			else if (input == ".clear")
-			{
-				variableMap.clear();
-				std::cout << "\n##################  BigNumber Mathematics !  ##################\n";
-				std::cout << "#### Type .help for a list of useful commands. ####\n";
-			}
-			else if (input.substr(0,4) == ".sum" || input.substr(0, 4) == ".mul" || input.substr(0, 4) == ".sub")
-			{
-				calculate(input.substr(4, input.size()), input.substr(1, 3));
-			}
-			else if (input.find(' ') != input.npos)
-			{
-				getVariableInput(input.substr(1, input.size()));
-			}
-			else printVariable(input.substr(1, input.size()));
+		string input;
+		cout << "-> ";
+		getline(cin, input);
+		
+		vector<string> input_args = splitInput(input);
+		if (input_args.size() == 1) {
+			if (input_args[0] == "help")displayHelp();
+			else if (input_args[0] == "time")timeDisplay = !timeDisplay;
+			else if (input_args[0] == "exit")running = false;
+			else if (input_args[0] == "clear") { variableMap.clear(); displayTitle(); }
+			else if (doesVariableExist(input_args[0]))printVariable(input_args[0]);
+			else cout << Error::Command;
 		}
-		else std::cout << commandError;
+		else if (input_args.size() == 2) {
+			if (isValidVariableName(input_args[0])) {
+				if (isValidVariableName(input_args[1])) {
+					if (doesVariableExist(input_args[1]))variableMap[input_args[0]] = variableMap[input_args[1]];
+					else cout << Error::VariableExist;
+				}
+				else if (isValidNumber(input_args[1]))variableMap[input_args[0]] = BigNumber(input_args[1]);
+				else cout << Error::VariableValue;
+			}
+			else cout << Error::VariableName;
+		}
+		else if (input_args.size() == 3)
+		{
+			if (input_args[0] == "sum" || input_args[0] == "sub" || input_args[0] == "mul")
+				calculate(input_args[0], input_args[1], input_args[2]);
+			else cout << Error::Command;
+		}
+		else if (input_args.size() == 4) {
+			if (!isValidVariableName(input_args[0]))cout << Error::VariableName;
+			else if (input_args[1] == "sum" || input_args[1] == "sub" || input_args[1] == "mul")
+				if(calculate(input_args[1], input_args[2], input_args[3]))variableMap[input_args[0]] = BigNumber(variableMap["mem"]);
+			else cout << Error::Command;
+		}
+		else cout << Error::Command;
 	}
 }
 
-void printVariable(std::string input)
+void printVariable(string input)
 {
-	if (variableMap.find(input) == variableMap.end())std::cout << variableError[1];
-	else std::cout << "## " << input << " = " << variableMap[input].asString() << "\n";
+	cout << "-> " << variableMap[input].asString() << "\n";
 }
 
-void getVariableInput(std::string input)
+bool calculate(string operation, string arg1, string arg2)
 {
-	std::string inputs[2] = { "", "" };
-
-	while (input[0] == ' ')input.erase(0, 1);
-
-	if (!input.size()) { std::cout << commandError; return; }
-
-	if (isdigit(input[0])) { std::cout << variableError[0]; return; }
-
-	int index = input[0] == '-';
-	while (input[index] != ' ' && index < input.size())index++;
-	inputs[0] = input.substr(0, index);
-	input.erase(0, index);
-
-	if (!input.size()) { std::cout << commandError; return; }
-
-	while (input[0] == ' ')input.erase(0, 1);
-
-	if (!input.size()) { std::cout << commandError; return; }
-
-	index = input[0] == '-';
-	bool isVar = false;
-	while (input[index] != ' ' && index < input.size()) {
-		if (!isdigit(input[index]) && input[index] !='.')isVar = true;
-		index++;
+	BigNumber a, b;
+	if (doesVariableExist(arg1))a = variableMap[arg1];
+	else if (isValidNumber(arg1))a = BigNumber(arg1);
+	else {
+		cout << Error::VariableName;
+		return false;
 	}
-	inputs[1] = input.substr(0, index);
-	input.erase(0, index);
 
-	while (input[0] == ' ')input.erase(0, 1);
-	if (input.size()) { std::cout << commandError; return; }
-
-	if (isVar && variableMap.find(inputs[1]) == variableMap.end()) { std::cout << variableError[1]; return; }
-	else if (isVar) { variableMap[inputs[0]] = variableMap[inputs[1]]; }
-	else variableMap[inputs[0]] = BigNumber(inputs[1]);
-}
-
-void calculate(std::string input, std::string operand)
-{
-	std::string inputs[2] = { "", "" };
-
-	while (input[0] == ' ')input.erase(0, 1);
-
-	if (!input.size()) { std::cout << commandError; return; }
-
-	bool var[2] = { false, false };
-
-	if (!isdigit(input[0]) && (input[0] != '-' || !isdigit(input[1]))) var[0] = true;
-
-	int index = input[0] == '-';;
-	while (input[index] != ' ' && index < input.size()) {
-		if (!var && !isdigit(input[index]) && input[index] != '.') { std::cout << variableError[2]; return; }
-		index++;
+	if (doesVariableExist(arg2))b = variableMap[arg2];
+	else if (isValidNumber(arg2))b = BigNumber(arg2);
+	else {
+		cout << Error::VariableName;
+		return false;
 	}
-	inputs[0] = input.substr(0, index);
-	input.erase(0, index);
 
-	if (!input.size()) { std::cout << commandError; return; }
-
-	while (input[0] == ' ')input.erase(0, 1);
-
-	if (!input.size()) { std::cout << commandError; return; }
-
-	if (!isdigit(input[0]) && (input[0]!='-' || !isdigit(input[1]))) var[1] = true;
-
-	index = input[0] == '-';
-	while (input[index] != ' ' && index < input.size()) {
-		if (!var[1] && !isdigit(input[index]) && input[index] != '.') { std::cout << variableError[2]; return; }
-		index++;
-	}
-	inputs[1] = input.substr(0, index);
-	input.erase(0, index);
-
-	while (input[0] == ' ')input.erase(0, 1);
-	if (input.size()) { std::cout << commandError; return; }
-
-	if (var[0] && variableMap.find(inputs[0]) == variableMap.end()){std::cout << variableError[0]; return; }
-	if (var[1] && variableMap.find(inputs[1]) == variableMap.end()){std::cout << variableError[0]; return; }
-
-	BigNumber a = var[0] ? variableMap[inputs[0]] : BigNumber(inputs[0]);
-	BigNumber b = var[1] ? variableMap[inputs[1]] : BigNumber(inputs[1]);
-
-	std::cout << "## = ";
-	auto started = std::chrono::high_resolution_clock::now();
+	auto started = chrono::high_resolution_clock::now();
 	
-	if (operand == "sum")variableMap["mem"] = a + b;
-	if (operand == "sub")variableMap["mem"] = a - b;
-	if (operand == "mul")variableMap["mem"] = a * b;
-	std::cout << variableMap["mem"].asString();
-	auto done = std::chrono::high_resolution_clock::now();
+	if (operation == "sum")variableMap["mem"] = a + b;
+	if (operation == "sub")variableMap["mem"] = a - b;
+	if (operation == "mul")variableMap["mem"] = a * b;
+	printVariable("mem");
+	auto done = chrono::high_resolution_clock::now();
 	if (timeDisplay) {
-		std::cout << "\n Finished in " << std::chrono::duration_cast<std::chrono::nanoseconds>(done - started).count() << " nanoseconds";
-		std::cout << "\n Finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(done - started).count() << " milliseconds";
+		cout << "Finished in " << chrono::duration_cast<chrono::nanoseconds>(done - started).count() << " nanoseconds\n";
+		cout << "Finished in " << chrono::duration_cast<chrono::milliseconds>(done - started).count() << " milliseconds\n";
 	}
-	std::cout << "\n";
+	return true;
 }
 
-/*
- 0.3443 4300
- 0.3833 2340
-                                | 0000 0000 0000 
- 0.3833 * 0.3443 = 0.13197019   | 1319 7019 0000
- 0.3833 * 0.00004300 = 0.16481900   | 0000 0232 2000
- 0.00009*0.00009 = 0.0000000081 | 0000 0000 8100
- 
+bool isValidVariableName(string var)
+{
+	bool isValid = true;
+	for (int i = 0; i < var.size() && isValid; i++) {
+		isValid = var[i] == '_' || var[i] >= 'a' && var[i] <= 'z' || var[i] >= 'A' && var[i] <= 'Z';
+	}
+	return isValid;
+}
 
- 348 4848 48.48 4848
- 0.0100
- 0.0100
- 
+bool isValidNumber(string num)
+{
+	if (num.size() == 1)return num[0] >= '0' && num[0] <= '9';
+	if (num[0] == '.' || num[0] == '-' && num[1] == '.')return false;
+	if (num[num.size() - 1] == '.')false;
 
+	bool isNum = true;
+	bool decimal_found = false;
 
+	for (int i = num[0] == '-'; i < num.size() && isNum; i++) {
+		isNum = num[i] >= '0' && num[i] <= '9' || !decimal_found && (decimal_found = num[i] == '.');
+	}
 
+	return isNum;
+}
 
+bool doesVariableExist(string var)
+{
+	return variableMap.find(var) != variableMap.end();
+}
 
+vector<string> splitInput(string input)
+{
+	stringstream ss(input);
+	vector<string> input_args;
+	string str;
+	while (ss >> str) {
+		input_args.push_back(str);
+	}
+	return input_args;
+}
 
+void displayTitle()
+{
+	cout << "##################  BigNumber Mathematics !  ##################\n";
+	cout << "#### Type .help for a list of useful commands. ####\n";
+}
 
-
-*/
+void displayHelp()
+{
+		cout << 
+		"#### Commands ####\n"
+		"#### help - show a list of commands.\n"
+		"#### [var] [number in string format] - declare a variable.\n"
+		"#### [var] mem - declare a variable and copy its value from memory.\n"
+		"#### [var] [another existing variable name] - declare a variable equal to another variable.\n"
+		"#### mem displays the last calculated result.\n"
+		"#### sum [var or num] [var or num] - add two variables/numbers.\n"
+		"#### sub [var or num] [var or num] - subtract two variables/numbers.\n"
+		"#### mul [var or num] [var or num] - multiply two variables/numbers.\n"
+		"#### time - display time taken after each solve.\n"
+		"#### clear - clear the memory.\n"
+		"#### exit - exit the program.\n\n";
+}
