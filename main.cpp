@@ -67,12 +67,20 @@ int main()
 		{
 			if (input_args[0] == "sum" || input_args[0] == "sub" || input_args[0] == "mul")
 				calculate(input_args[0], input_args[1], input_args[2]);
+
+			else if (input_args[1] == "+" || input_args[1] == "-" || input_args[1] == "*")
+				calculate(input_args[1], input_args[0], input_args[2]);
+
 			else cout << Error::Command;
 		}
 		else if (input_args.size() == 4) {
 			if (!isValidVariableName(input_args[0]))cout << Error::VariableName;
-			else if (input_args[1] == "sum" || input_args[1] == "sub" || input_args[1] == "mul")
-				if(calculate(input_args[1], input_args[2], input_args[3]))variableMap[input_args[0]] = BigNumber(variableMap["mem"]);
+			else if (input_args[1] == "sum" || input_args[1] == "sub" || input_args[1] == "mul") {
+				if (calculate(input_args[1], input_args[2], input_args[3]))variableMap[input_args[0]] = BigNumber(variableMap["mem"]);
+			}
+			else if (input_args[2] == "+" || input_args[2] == "-" || input_args[2] == "*") {
+				if (calculate(input_args[2], input_args[1], input_args[3]))variableMap[input_args[0]] = BigNumber(variableMap["mem"]);
+			}
 			else cout << Error::Command;
 		}
 		else cout << Error::Command;
@@ -103,9 +111,9 @@ bool calculate(string operation, string arg1, string arg2)
 
 	auto started = chrono::high_resolution_clock::now();
 	
-	if (operation == "sum")variableMap["mem"] = a + b;
-	if (operation == "sub")variableMap["mem"] = a - b;
-	if (operation == "mul")variableMap["mem"] = a * b;
+	if (operation == "sum" || operation == "+")variableMap["mem"] = a + b;
+	if (operation == "sub" || operation == "-")variableMap["mem"] = a - b;
+	if (operation == "mul" || operation == "*")variableMap["mem"] = a * b;
 	printVariable("mem");
 	auto done = chrono::high_resolution_clock::now();
 	if (timeDisplay) {

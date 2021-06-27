@@ -327,13 +327,9 @@ BigNumber operator*(const BigNumber& nBig1, const BigNumber& nBig2)
 
 		for (int i = 0; i < nBig1.fractional.vec.size(); i++) {
 			for (int j = 0; j < nBig2.fractional.vec.size(); j++) {
-				int cell = i + j;
+				int cell = i + j + 1;
 
 				carry = nBig1.fractional.vec[i] * nBig2.fractional.vec[j];
-				while (carry % BigNumber::EXP_OF_10 == 0)carry /= BigNumber::EXP_OF_10;
-
-				if ((carry / BigNumber::EXP_OF_10) != 0)cell++;
-
 				do {
 					int sum = nResult.fractional.vec[cell] + carry;
 					nResult.fractional.vec[cell] = sum % BigNumber::EXP_OF_10;
@@ -383,3 +379,25 @@ BigNumber operator*(const BigNumber& nBig1, const BigNumber& nBig2)
 	nResult.negative = nBig1.negative != nBig2.negative;
 	return nResult;
 }
+
+/*
+
+0.9000 0000 0010
+0.9000 0000 0010
+
+0.8100 0000
+0.0000 0000
+0.0000 0000 0009 0000
+0.0000 0000
+0.0000 0000 0000
+0.0000 0000 0009 0000
+0.0000 0000 0000 0000
+0.0000 0000 0000 0000 0000 0100
+
+
+9000 0 0010
+9000 0 0010
+
+8100 0 18 0 100 0
+
+*/
