@@ -65,20 +65,20 @@ int main()
 		}
 		else if (input_args.size() == 3)
 		{
-			if (input_args[0] == "sum" || input_args[0] == "sub" || input_args[0] == "mul")
+			if (input_args[0] == "sum" || input_args[0] == "sub" || input_args[0] == "mul" || input_args[0] == "cmp")
 				calculate(input_args[0], input_args[1], input_args[2]);
 
-			else if (input_args[1] == "+" || input_args[1] == "-" || input_args[1] == "*")
+			else if (input_args[1] == "+" || input_args[1] == "-" || input_args[1] == "*" || input_args[1] == "<=>")
 				calculate(input_args[1], input_args[0], input_args[2]);
 
 			else cout << Error::Command;
 		}
 		else if (input_args.size() == 4) {
 			if (!isValidVariableName(input_args[0]))cout << Error::VariableName;
-			else if (input_args[1] == "sum" || input_args[1] == "sub" || input_args[1] == "mul") {
+			else if (input_args[1] == "sum" || input_args[1] == "sub" || input_args[1] == "mul" || input_args[1] == "cmp") {
 				if (calculate(input_args[1], input_args[2], input_args[3]))variableMap[input_args[0]] = BigNumber(variableMap["mem"]);
 			}
-			else if (input_args[2] == "+" || input_args[2] == "-" || input_args[2] == "*") {
+			else if (input_args[2] == "+" || input_args[2] == "-" || input_args[2] == "*" || input_args[2] == "<=>") {
 				if (calculate(input_args[2], input_args[1], input_args[3]))variableMap[input_args[0]] = BigNumber(variableMap["mem"]);
 			}
 			else cout << Error::Command;
@@ -112,8 +112,13 @@ bool calculate(string operation, string arg1, string arg2)
 	auto started = chrono::high_resolution_clock::now();
 	
 	if (operation == "sum" || operation == "+")variableMap["mem"] = a + b;
-	if (operation == "sub" || operation == "-")variableMap["mem"] = a - b;
-	if (operation == "mul" || operation == "*")variableMap["mem"] = a * b;
+	else if (operation == "sub" || operation == "-")variableMap["mem"] = a - b;
+	else if (operation == "mul" || operation == "*")variableMap["mem"] = a * b;
+	else if (operation == "cmp" || operation == "<=>") {
+		if (a < b)variableMap["mem"] = -1;
+		else if (a == b)variableMap["mem"] = 0;
+		else if (a > b)variableMap["mem"] = 1;
+	}
 	printVariable("mem");
 	auto done = chrono::high_resolution_clock::now();
 	if (timeDisplay) {
@@ -173,16 +178,18 @@ void displayTitle()
 void displayHelp()
 {
 		cout << 
-		"#### Commands ####\n"
-		"#### help - show a list of commands.\n"
-		"#### [var] [number in string format] - declare a variable.\n"
-		"#### [var] mem - declare a variable and copy its value from memory.\n"
-		"#### [var] [another existing variable name] - declare a variable equal to another variable.\n"
-		"#### mem displays the last calculated result.\n"
-		"#### sum [var or num] [var or num] - add two variables/numbers.\n"
-		"#### sub [var or num] [var or num] - subtract two variables/numbers.\n"
-		"#### mul [var or num] [var or num] - multiply two variables/numbers.\n"
-		"#### time - display time taken after each solve.\n"
-		"#### clear - clear the memory.\n"
-		"#### exit - exit the program.\n\n";
+		"## Commands ####\n"
+		"## help - show a list of commands.\n"
+		"## use 'mem' to access memory variable (last calculated value).\n"
+		"## [var] [num] - declare a variable.\n"
+		"## [var] mem - declare a variable and copy its value from memory.\n"
+		"## [var] [var] - declare a variable equal to another variable.\n"
+		"## [var] - print a variable's value.\n"
+		"## sum [var or num] [var or num] - add two variables/numbers. Also - [var or num] + [var or num]\n"
+		"## sub [var or num] [var or num] - subtract two variables/numbers. Also - [var or num] - [var or num]\n"
+		"## mul [var or num] [var or num] - multiply two variables/numbers. Also - [var or num] * [var or num]\n"
+		"## [var] [sum/sub/mul/+/-/* commands] - copy the result into the variable.\n"
+		"## time - display time taken after each solve.\n"
+		"## clear - clear the memory.\n"
+		"## exit - exit the program.\n\n";
 }
