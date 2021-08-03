@@ -32,7 +32,10 @@ bool timeDisplay = false;
 
 int main()
 {
-	displayTitle();
+	BigNumber a;
+	cout << a + "3";
+}
+	/*displayTitle();
 
 	variableMap.insert(make_pair("mem", 0));
 
@@ -172,7 +175,7 @@ vector<string> splitInput(string input)
 void displayTitle()
 {
 	cout << "##################  BigNumber Mathematics !  ##################\n";
-	cout << "#### Type .help for a list of useful commands. ####\n";
+	cout << "#### Type help for a list of useful commands. ####\n";
 }
 
 void displayHelp()
@@ -192,4 +195,4 @@ void displayHelp()
 		"## time - display time taken after each solve.\n"
 		"## clear - clear the memory.\n"
 		"## exit - exit the program.\n\n";
-}
+}*/

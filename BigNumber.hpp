@@ -19,6 +19,7 @@ public:
 	BigNumber();
 	BigNumber(int);
 	BigNumber(double);
+	BigNumber(const char*);
 	BigNumber(const std::string&);
 	~BigNumber();
 
@@ -38,4 +39,7 @@ public:
 	friend BigNumber operator+(const BigNumber&, const BigNumber&);
 	friend BigNumber operator-(const BigNumber&, const BigNumber&);
 	friend BigNumber operator*(const BigNumber&, const BigNumber&);
+
+	friend BigNumber operator+(const BigNumber&);
+	friend BigNumber operator-(const BigNumber&);
 };
