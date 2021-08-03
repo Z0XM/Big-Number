@@ -21,9 +21,15 @@
     <ClCompile Include="BigNumber.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Operands.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BigNumber.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Operands.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -71,8 +71,43 @@ BigNumber::BigNumber(double x)
 
 	fractional.str = trailZeroesBack(std::to_string(x - n));
 	fractional.str.erase(0, 2);
-	fillVec(fractional.vec, (x - n) * pow10(fractional.str.size()));
+	if (fractional.str.empty())fractional.str = "0";
 
+	fillVec(fractional.vec, (x - n) * pow10(fractional.str.size()));
+}
+
+BigNumber::BigNumber(const char* num)
+{
+	std::string str(num);
+
+	if (str[0] == '-') {
+		str.erase(0, 1);
+		negative = true;
+	}
+
+	int k = str.find('.');
+	if (k != str.npos) {
+		str[k] = ' ';
+	}
+
+	std::stringstream ss(str);
+	ss >> integral.str >> fractional.str;
+
+	integral.str = trailZeroesFront(integral.str);
+
+	integral.vec.clear();
+	for (int i = 0; i < integral.str.size(); i++) {
+		if (i % POWER_OF_10 == 0)integral.vec.push_back(0);
+		integral.vec.back() += toDigit(integral.str[integral.str.size() - 1 - i]) * (int)pow(10, i % POWER_OF_10);
+	}
+
+	fractional.str = trailZeroesBack(fractional.str);
+
+	fractional.vec.clear();
+	for (int i = 0; i < fractional.str.size(); i++) {
+		if (i % POWER_OF_10 == 0)fractional.vec.push_back(0);
+		fractional.vec.back() += toDigit(fractional.str[i]) * (int)pow(10, (POWER_OF_10 - i % POWER_OF_10 - 1));
+	}
 }
 
 BigNumber::BigNumber(const std::string& num)
@@ -377,6 +412,18 @@ BigNumber operator*(const BigNumber& nBig1, const BigNumber& nBig2)
 		nResult.integral.str = toString(nResult.integral.vec.crbegin(), nResult.integral.vec.crend());
 	}
 	nResult.negative = nBig1.negative != nBig2.negative;
+	return nResult;
+}
+
+BigNumber operator+(const BigNumber& nBig)
+{
+	return nBig;
+}
+
+BigNumber operator-(const BigNumber& nBig)
+{
+	BigNumber nResult = nBig;
+	nResult.negative = !nResult.negative;
 	return nResult;
 }
 
