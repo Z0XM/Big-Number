@@ -21,7 +21,7 @@ bool timeDisplay = false;
 
 int main()
 {
-	variableMap.insert(std::make_pair("mem", 0));
+	displayTitle();
 
 	while (true) {
 		std::stringstream eq;
@@ -127,10 +127,27 @@ BigNumber solveInfix(std::stringstream& postfix)
 		stack.pop();
 	}
 
-	return values.top();
+void displayTitle()
+{
+	cout << "##################  BigNumber Mathematics !  ##################\n";
+	cout << "#### Type .help for a list of useful commands. ####\n";
 }
 
 bool doesVariableExist(const std::string& var)
 {
-	return variableMap.find(var) != variableMap.end();
+		cout << 
+		"## Commands ####\n"
+		"## help - show a list of commands.\n"
+		"## use 'mem' to access memory variable (last calculated value).\n"
+		"## [var] [num] - declare a variable.\n"
+		"## [var] mem - declare a variable and copy its value from memory.\n"
+		"## [var] [var] - declare a variable equal to another variable.\n"
+		"## [var] - print a variable's value.\n"
+		"## sum [var or num] [var or num] - add two variables/numbers. Also - [var or num] + [var or num]\n"
+		"## sub [var or num] [var or num] - subtract two variables/numbers. Also - [var or num] - [var or num]\n"
+		"## mul [var or num] [var or num] - multiply two variables/numbers. Also - [var or num] * [var or num]\n"
+		"## [var] [sum/sub/mul/+/-/* commands] - copy the result into the variable.\n"
+		"## time - display time taken after each solve.\n"
+		"## clear - clear the memory.\n"
+		"## exit - exit the program.\n\n";
 }

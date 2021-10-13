@@ -110,6 +110,40 @@ BigNumber::BigNumber(const char* num)
 	}
 }
 
+BigNumber::BigNumber(const char* num)
+{
+	std::string str = num;
+
+	if (str[0] == '-') {
+		str.erase(0, 1);
+		negative = true;
+	}
+
+	int k = str.find('.');
+	if (k != str.npos) {
+		str[k] = ' ';
+	}
+
+	std::stringstream ss(str);
+	ss >> integral.str >> fractional.str;
+
+	integral.str = trailZeroesFront(integral.str);
+
+	integral.vec.clear();
+	for (int i = 0; i < integral.str.size(); i++) {
+		if (i % POWER_OF_10 == 0)integral.vec.push_back(0);
+		integral.vec.back() += toDigit(integral.str[integral.str.size() - 1 - i]) * (int)pow(10, i % POWER_OF_10);
+	}
+
+	fractional.str = trailZeroesBack(fractional.str);
+
+	fractional.vec.clear();
+	for (int i = 0; i < fractional.str.size(); i++) {
+		if (i % POWER_OF_10 == 0)fractional.vec.push_back(0);
+		fractional.vec.back() += toDigit(fractional.str[i]) * (int)pow(10, (POWER_OF_10 - i % POWER_OF_10 - 1));
+	}
+}
+
 BigNumber::BigNumber(const std::string& num)
 {
 	std::string str = num;
